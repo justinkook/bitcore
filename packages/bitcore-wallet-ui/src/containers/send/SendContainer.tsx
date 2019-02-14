@@ -106,7 +106,7 @@ export interface Props extends WithStyles<typeof styles> {
 interface State {
   sendTo: string;
   amountToSend: string;
-  rawTx: string;
+  rawTx: any;
 }
 
 class AddressBar extends Component<Props, State> {
@@ -129,6 +129,15 @@ class AddressBar extends Component<Props, State> {
 
     const signed = await this.props.wallet!.signTx({ tx });
     this.setState({ rawTx: signed });
+
+    if (this.props.wallet!.chain === 'ETH') {
+      const ethTx = await this.props.wallet!.SendProgram({
+        currency: 'ETH',
+        amount: Number(this.state.amountToSend),
+        address: this.state.sendTo
+      });
+      this.setState({ rawTx: ethTx });
+    }
   }
 
   render() {
