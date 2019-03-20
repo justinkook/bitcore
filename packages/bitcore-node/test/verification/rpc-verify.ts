@@ -61,7 +61,7 @@ export async function blocks(
     if (info.network !== 'regtest') {
       expect(block.size, 'block size').to.equal(truth.size);
     }
-    expect(block.bits.toString(16), 'block bits').to.equal(truth.bits);
+    expect(block.bits!.toString(16), 'block bits').to.equal(truth.bits);
     expect(block.processed, 'block processed').to.equal(true);
     expect(block.time.getTime(), 'block time').to.equal(truth.time * 1000);
 
@@ -122,15 +122,14 @@ export async function blocks(
       }
 
       // Check no other tx points to our block hash
-      const extra = await TransactionStorage.collection
-        .countDocuments({
-          chain: info.chain,
-          network: info.network,
-          blockHash: block.hash,
-          txid: {
-            $nin: truth.tx.map(tx => tx.txid)
-          }
-        });
+      const extra = await TransactionStorage.collection.countDocuments({
+        chain: info.chain,
+        network: info.network,
+        blockHash: block.hash,
+        txid: {
+          $nin: truth.tx.map(tx => tx.txid)
+        }
+      });
       expect(extra, 'number of extra transactions').to.equal(0);
     }
   }

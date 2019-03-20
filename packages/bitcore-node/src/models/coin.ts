@@ -4,7 +4,7 @@ import { ObjectID, CollectionAggregationOptions } from 'mongodb';
 import { SpentHeightIndicators, CoinJSON } from '../types/Coin';
 import { valueOrDefault } from '../utils/check';
 import { StorageService } from '../services/storage';
-import { BlockStorage } from './block';
+import { BtcBlockStorage } from './block/btc';
 
 export type ICoin = {
   network: string;
@@ -103,7 +103,7 @@ class CoinModel extends BaseModel<ICoin> {
 
   async getBalanceAtTime(params: { query: any; time: string; chain: string; network: string }) {
     let { query, time, chain, network } = params;
-    const [block] = await BlockStorage.collection
+    const [block] = await BtcBlockStorage.collection
       .find({
         $query: {
           chain,

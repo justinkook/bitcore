@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { BlockStorage, IBlock } from '../../../src/models/block';
+import { BtcBlockStorage, IBlock } from '../../../src/models/block/btc';
 import { TransactionStorage } from '../../../src/models/transaction';
 import { CoinStorage } from '../../../src/models/coin';
 import * as sinon from 'sinon';
@@ -29,13 +29,13 @@ describe('Block Model', function() {
       sandbox.restore();
     });
     it('should be able to add a block', async () => {
-      let newBlock = Object.assign({ save: () => Promise.resolve() }, BlockStorage, addBlockParams);
+      let newBlock = Object.assign({ save: () => Promise.resolve() }, BtcBlockStorage, addBlockParams);
 
       mockStorage(newBlock);
-      sandbox.stub(BlockStorage, 'handleReorg').resolves();
+      sandbox.stub(BtcBlockStorage, 'handleReorg').resolves();
       sandbox.stub(TransactionStorage, 'batchImport').resolves();
 
-      const result = await BlockStorage.addBlock(addBlockParams);
+      const result = await BtcBlockStorage.addBlock(addBlockParams);
       expect(result);
     });
   });
@@ -43,7 +43,7 @@ describe('Block Model', function() {
   describe('BlockModel find options', () => {
     it('should be able to create query options', () => {
       const id = new ObjectID();
-      const { query, options } = Storage.getFindOptions<MongoBound<IBlock>>(BlockStorage, {
+      const { query, options } = Storage.getFindOptions<MongoBound<IBlock>>(BtcBlockStorage, {
         since: id,
         paging: '_id',
         limit: 100,
@@ -56,7 +56,7 @@ describe('Block Model', function() {
 
     it('should default to descending', () => {
       const id = new ObjectID();
-      const { query, options } = Storage.getFindOptions<MongoBound<IBlock>>(BlockStorage, {
+      const { query, options } = Storage.getFindOptions<MongoBound<IBlock>>(BtcBlockStorage, {
         since: id,
         paging: '_id',
         limit: 100
@@ -68,7 +68,7 @@ describe('Block Model', function() {
 
     it('should allow ascending', () => {
       const id = new ObjectID();
-      const { query, options } = Storage.getFindOptions<MongoBound<IBlock>>(BlockStorage, {
+      const { query, options } = Storage.getFindOptions<MongoBound<IBlock>>(BtcBlockStorage, {
         since: id,
         paging: '_id',
         limit: 100,
@@ -127,10 +127,10 @@ describe('Block Model', function() {
     });
 
     it('should return if localTip hash equals the previous hash', async () => {
-      Object.assign(BlockStorage.collection, mockCollection(null));
+      Object.assign(BtcBlockStorage.collection, mockCollection(null));
       Object.assign(TransactionStorage.collection, mockCollection(null));
       Object.assign(CoinStorage.collection, mockCollection(null));
-      let blockModelRemoveSpy = BlockStorage.collection.deleteMany as sinon.SinonSpy;
+      let blockModelRemoveSpy = BtcBlockStorage.collection.deleteMany as sinon.SinonSpy;
       let transactionModelRemoveSpy = TransactionStorage.collection.deleteMany as sinon.SinonSpy;
       let coinModelRemoveSpy = CoinStorage.collection.deleteMany as sinon.SinonSpy;
       let coinModelUpdateSpy = CoinStorage.collection.updateMany as sinon.SinonSpy;
@@ -149,7 +149,7 @@ describe('Block Model', function() {
         network: 'regtest'
       };
 
-      await BlockStorage.handleReorg(params);
+      await BtcBlockStorage.handleReorg(params);
       expect(blockModelRemoveSpy.notCalled).to.be.true;
       expect(transactionModelRemoveSpy.notCalled).to.be.true;
       expect(coinModelRemoveSpy.notCalled).to.be.true;
@@ -157,7 +157,7 @@ describe('Block Model', function() {
     });
 
     it('should return if localTip height is zero', async () => {
-      let blockModelRemoveSpy = BlockStorage.collection.deleteMany as sinon.SinonSpy;
+      let blockModelRemoveSpy = BtcBlockStorage.collection.deleteMany as sinon.SinonSpy;
       let transactionModelRemoveSpy = TransactionStorage.collection.deleteMany as sinon.SinonSpy;
       let coinModelRemoveSpy = CoinStorage.collection.deleteMany as sinon.SinonSpy;
       let coinModelUpdateSpy = CoinStorage.collection.updateMany as sinon.SinonSpy;
@@ -168,9 +168,9 @@ describe('Block Model', function() {
         block: TEST_BLOCK,
         height: 1355
       };
-      let params = Object.assign(BlockStorage, blockMethodParams);
+      let params = Object.assign(BtcBlockStorage, blockMethodParams);
 
-      await BlockStorage.handleReorg(params);
+      await BtcBlockStorage.handleReorg(params);
       expect(blockModelRemoveSpy.notCalled).to.be.true;
       expect(transactionModelRemoveSpy.notCalled).to.be.true;
       expect(coinModelRemoveSpy.notCalled).to.be.true;
@@ -188,10 +188,10 @@ describe('Block Model', function() {
         block: TEST_BLOCK,
         height: 1355
       };
-      let params = Object.assign(BlockStorage, blockMethodParams);
-      const removeSpy = BlockStorage.collection.deleteMany as sinon.SinonSpy;
+      let params = Object.assign(BtcBlockStorage, blockMethodParams);
+      const removeSpy = BtcBlockStorage.collection.deleteMany as sinon.SinonSpy;
 
-      await BlockStorage.handleReorg(params);
+      await BtcBlockStorage.handleReorg(params);
       expect(removeSpy.called).to.be.true;
     });
 
@@ -207,10 +207,10 @@ describe('Block Model', function() {
         block: TEST_BLOCK,
         height: 1355
       };
-      let params = Object.assign(BlockStorage, blockMethodParams);
+      let params = Object.assign(BtcBlockStorage, blockMethodParams);
       const removeSpy = TransactionStorage.collection.deleteMany as sinon.SinonSpy;
 
-      await BlockStorage.handleReorg(params);
+      await BtcBlockStorage.handleReorg(params);
       expect(removeSpy.called).to.be.true;
     });
 
@@ -226,11 +226,11 @@ describe('Block Model', function() {
         block: TEST_BLOCK,
         height: 1355
       };
-      let params = Object.assign(BlockStorage, blockMethodParams);
+      let params = Object.assign(BtcBlockStorage, blockMethodParams);
       const collectionSpy = Storage.db!.collection as sinon.SinonSpy;
       const removeSpy = CoinStorage.collection.deleteMany as sinon.SinonSpy;
 
-      await BlockStorage.handleReorg(params);
+      await BtcBlockStorage.handleReorg(params);
       expect(collectionSpy.calledOnceWith('coins'));
       expect(removeSpy.callCount).to.eq(3);
     });
@@ -247,11 +247,11 @@ describe('Block Model', function() {
         block: TEST_BLOCK,
         height: 1355
       };
-      let params = Object.assign(BlockStorage, blockMethodParams);
+      let params = Object.assign(BtcBlockStorage, blockMethodParams);
       const collectionSpy = Storage.db!.collection as sinon.SinonSpy;
       const updateSpy = CoinStorage.collection.updateMany as sinon.SinonSpy;
 
-      await BlockStorage.handleReorg(params);
+      await BtcBlockStorage.handleReorg(params);
       expect(collectionSpy.calledOnceWith('coins'));
       expect(updateSpy.called).to.be.true;
     });
@@ -278,7 +278,7 @@ describe('Block Model', function() {
         processed: true
       };
 
-      const result = BlockStorage._apiTransform(block, { object: true });
+      const result = BtcBlockStorage._apiTransform(block, { object: true });
 
       expect(result.hash).to.be.equal(block.hash);
       expect(result.height).to.be.equal(block.height);

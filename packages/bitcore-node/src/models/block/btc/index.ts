@@ -1,53 +1,17 @@
-import { valueOrDefault } from '../utils/check';
-import { CoinStorage } from './coin';
-import { TransactionStorage } from './transaction';
-import { TransformOptions } from '../types/TransformOptions';
-import { LoggifyClass } from '../decorators/Loggify';
-import { Bitcoin } from '../types/namespaces/Bitcoin';
-import { BaseModel, MongoBound } from './base';
-import logger from '../logger';
-import { IBlock } from '../types/Block';
-import { SpentHeightIndicators } from '../types/Coin';
-import { EventStorage } from './events';
-import config from '../config';
-import { StorageService } from '../services/storage';
+import { CoinStorage } from '../../coin';
+import { TransactionStorage } from '../../transaction';
+import { LoggifyClass } from '../../../decorators/Loggify';
+import { Bitcoin } from '../../../types/namespaces/Bitcoin';
+import logger from '../../../logger';
+import { IBlock } from '../../../types/Block';
+import { SpentHeightIndicators } from '../../../types/Coin';
+import { EventStorage } from '../../events';
+import { BlockModel } from '..';
 
 export { IBlock };
 
 @LoggifyClass
-export class BlockModel extends BaseModel<IBlock> {
-  constructor(storage?: StorageService) {
-    super('blocks', storage);
-  }
-
-  chainTips: Mapping<Mapping<IBlock>> = {};
-
-  allowedPaging = [
-    {
-      key: 'height' as 'height',
-      type: 'number' as 'number'
-    }
-  ];
-
-  async onConnect() {
-    this.collection.createIndex({ hash: 1 }, { background: true });
-    this.collection.createIndex({ chain: 1, network: 1, processed: 1, height: -1 }, { background: true });
-    this.collection.createIndex({ chain: 1, network: 1, timeNormalized: 1 }, { background: true });
-    this.collection.createIndex({ previousBlockHash: 1 }, { background: true });
-    this.wireup();
-  }
-
-  async wireup() {
-    for (let chain of Object.keys(config.chains)) {
-      for (let network of Object.keys(config.chains[chain])) {
-        const tip = await this.getLocalTip({ chain, network });
-        if (tip) {
-          this.chainTips[chain] = { [network]: tip };
-        }
-      }
-    }
-  }
-
+export class BtcBlockModel extends BlockModel {
   async addBlock(params: {
     block: Bitcoin.Block;
     parentChain?: string;
@@ -164,25 +128,6 @@ export class BlockModel extends BaseModel<IBlock> {
     };
   }
 
-  updateCachedChainTip(params: { block: IBlock; chain: string; network: string }) {
-    const { chain, network, block } = params;
-    this.chainTips[chain] = valueOrDefault(this.chainTips[chain], {});
-    this.chainTips[chain][network] = valueOrDefault(this.chainTips[chain][network], block);
-    if (this.chainTips[chain][network].height < block.height) {
-      this.chainTips[chain][network] = block;
-    }
-  }
-
-  getPoolInfo(coinbase: string) {
-    //TODO need to make this actually parse the coinbase input and map to miner strings
-    // also should go somewhere else
-    return coinbase;
-  }
-
-  getLocalTip({ chain, network }) {
-    return this.collection.findOne({ chain, network, processed: true }, { sort: { height: -1 } });
-  }
-
   async handleReorg(params: { header?: Bitcoin.Block.HeaderObj; chain: string; network: string }): Promise<boolean> {
     const { header, chain, network } = params;
     let localTip = await this.getLocalTip(params);
@@ -196,7 +141,7 @@ export class BlockModel extends BaseModel<IBlock> {
       const prevBlock = await this.collection.findOne({ chain, network, hash: header.prevHash });
       if (prevBlock) {
         localTip = prevBlock;
-        this.updateCachedChainTip({chain, network, block: prevBlock})
+        this.updateCachedChainTip({ chain, network, block: prevBlock });
       } else {
         delete this.chainTips[chain][network];
         logger.error(`Previous block isn't in the DB need to roll back until we have a block in common`);
@@ -218,43 +163,6 @@ export class BlockModel extends BaseModel<IBlock> {
     logger.debug('Removed data from above blockHeight: ', localTip.height);
     return true;
   }
-
-  _apiTransform(block: Partial<MongoBound<IBlock>>, options: TransformOptions): any {
-    const transform = {
-      _id: block._id,
-      chain: block.chain,
-      network: block.network,
-      hash: block.hash,
-      height: block.height,
-      version: block.version,
-      size: block.size,
-      merkleRoot: block.merkleRoot,
-      time: block.time,
-      timeNormalized: block.timeNormalized,
-      nonce: block.nonce,
-      bits: block.bits,
-      /*
-       *difficulty: block.difficulty,
-       */
-      /*
-       *chainWork: block.chainWork,
-       */
-      previousBlockHash: block.previousBlockHash,
-      nextBlockHash: block.nextBlockHash,
-      reward: block.reward,
-      /*
-       *isMainChain: block.mainChain,
-       */
-      transactionCount: block.transactionCount
-      /*
-       *minedBy: BlockModel.getPoolInfo(block.minedBy)
-       */
-    };
-    if (options && options.object) {
-      return transform;
-    }
-    return JSON.stringify(transform);
-  }
 }
 
-export let BlockStorage = new BlockModel();
+export let BtcBlockStorage = new BtcBlockModel();

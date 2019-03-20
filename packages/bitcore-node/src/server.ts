@@ -12,10 +12,9 @@ process.on('unhandledRejection', error => {
   console.error('Unhandled Rejection at:', error.stack || error);
 });
 
-
 const runMaster = async () => {
   await Worker.start();
-  P2P.start();
+  P2P.startConfiguredChains();
 
   // start the API on master if we are in debug
   if (args.DEBUG) {

@@ -13,6 +13,7 @@ import { TransactionJSON } from '../types/Transaction';
 import { SpentHeightIndicators } from '../types/Coin';
 import { Config } from '../services/config';
 import { EventStorage } from './events';
+import { Ethereum } from '../types/namespaces/Ethereum';
 
 const Chain = require('../chain');
 
@@ -24,12 +25,12 @@ export type ITransaction = {
   blockHash?: string;
   blockTime?: Date;
   blockTimeNormalized?: Date;
-  coinbase: boolean;
+  coinbase?: boolean;
   fee: number;
-  size: number;
-  locktime: number;
-  inputCount: number;
-  outputCount: number;
+  size?: number;
+  locktime?: number;
+  inputCount?: number;
+  outputCount?: number;
   value: number;
   wallets: ObjectID[];
 };
@@ -106,6 +107,37 @@ export class TransactionModel extends BaseModel<ITransaction> {
     );
   }
 
+  async batchEthImport(params: {
+    txs: Array<Ethereum.Transaction>;
+    height: number;
+    mempoolTime?: Date;
+    blockTime?: Date;
+    blockHash?: string;
+    blockTimeNormalized?: Date;
+    parentChain?: string;
+    forkHeight?: number;
+    chain: string;
+    network: string;
+    initialSyncComplete: boolean;
+  }) {
+    const txOps = await this.addEthTransactions({ ...params });
+    logger.debug('Writing Transactions', txOps.length);
+    await Promise.all(
+      partition(txOps, txOps.length / Config.get().maxPoolSize).map(txBatch =>
+        this.collection.bulkWrite(txBatch, { ordered: false })
+      )
+    );
+
+    // Create events for mempool txs
+    if (params.height < SpentHeightIndicators.minimum) {
+      for (let op of txOps) {
+        const filter = op.updateOne.filter;
+        const tx = { ...op.updateOne.update.$set, ...filter };
+        await EventStorage.signalTx(tx);
+      }
+    }
+  }
+
   async batchImport(params: {
     txs: Array<Bitcoin.Transaction>;
     height: number;
@@ -169,6 +201,52 @@ export class TransactionModel extends BaseModel<ITransaction> {
     }
   }
 
+  async addEthTransactions(params: {
+    txs: Array<Ethereum.Transaction>;
+    height: number;
+    blockTime?: Date;
+    blockHash?: string;
+    blockTimeNormalized?: Date;
+    parentChain?: string;
+    forkHeight?: number;
+    initialSyncComplete: boolean;
+    chain: string;
+    network: string;
+    mempoolTime?: Date;
+  }) {
+    let { blockHash, blockTime, blockTimeNormalized, chain, height, network, parentChain } = params;
+    const parentTxs = await TransactionStorage.collection
+      .find({ blockHeight: height, chain: parentChain, network })
+      .toArray();
+    return parentTxs.map(parentTx => {
+      return {
+        updateOne: {
+          filter: { txid: parentTx.txid, chain, network },
+          update: {
+            $set: {
+              chain,
+              network,
+              blockHeight: height,
+              blockHash,
+              blockTime,
+              blockTimeNormalized,
+              coinbase: parentTx.coinbase,
+              fee: parentTx.fee,
+              size: parentTx.size,
+              locktime: parentTx.locktime,
+              inputCount: parentTx.inputCount,
+              outputCount: parentTx.outputCount,
+              value: parentTx.value,
+              wallets: [] as ObjectID[]
+            }
+          },
+          upsert: true,
+          forceServerObjectId: true
+        }
+      };
+    });
+  }
+
   async addTransactions(params: {
     txs: Array<Bitcoin.Transaction>;
     height: number;
@@ -207,7 +285,7 @@ export class TransactionModel extends BaseModel<ITransaction> {
                 inputCount: parentTx.inputCount,
                 outputCount: parentTx.outputCount,
                 value: parentTx.value,
-                wallets: []
+                wallets: [] as ObjectID[]
               }
             },
             upsert: true,

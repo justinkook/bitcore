@@ -1,4 +1,4 @@
-import { BitcoinTransactionType } from "./Transaction";
+import { BitcoinTransactionType } from './Transaction';
 export type BlockHeaderObj = {
   prevHash: string;
   hash: string;
@@ -7,7 +7,7 @@ export type BlockHeaderObj = {
   merkleRoot: string;
   bits: number;
   nonce: number;
-}
+};
 export type BlockHeader = {
   toObject: () => BlockHeaderObj;
 };

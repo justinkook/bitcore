@@ -1,6 +1,6 @@
 import { TransactionJSON } from '../Transaction';
 import { ObjectId } from 'mongodb';
-import { IBlock } from '../../models/block';
+import { IBlock } from '../../models/block/btc';
 import { Request, Response } from 'express';
 import { IWallet } from '../../models/wallet';
 import { ChainNetwork } from '../../types/ChainNetwork';

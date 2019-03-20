@@ -23,5 +23,5 @@ export declare namespace Bitcoin.Transaction {
 
 export declare namespace Bitcoin.Block {
   export type Header = BlockHeader;
-  export type HeaderObj = BlockHeaderObj
+  export type HeaderObj = BlockHeaderObj;
 }

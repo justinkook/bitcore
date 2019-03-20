@@ -1,6 +1,6 @@
 import { StateStorage } from '../../src/models/state';
 import sinon from 'sinon';
-import { BlockStorage } from '../../src/models/block';
+import { BlockStorage } from '../../src/models/block/';
 import { TransactionStorage } from '../../src/models/transaction';
 import { CoinStorage } from '../../src/models/coin';
 import { WalletAddressStorage } from '../../src/models/walletAddress';
