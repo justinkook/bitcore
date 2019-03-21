@@ -8,7 +8,6 @@ export declare namespace Ethereum {
     uncleHeaders: Header[];
     raw: Buffer[];
     txTrie: any;
-    toBuffer: () => Buffer;
   };
 
   export type Header = {
@@ -32,9 +31,9 @@ export declare namespace Ethereum {
   };
 
   export type Transaction = {
-    nonce?: Buffer;
+    nonce: Buffer;
     gasPrice: Buffer;
-    gasLimit?: Buffer;
+    gasLimit: Buffer;
     to?: Buffer | string;
     value: number;
     data?: Buffer | string;
@@ -45,7 +44,6 @@ export declare namespace Ethereum {
     blockHeight: number;
     blockHash: string;
     fee: number;
-    gasUsed?: string;
     outputIndex?: string;
     outputAmount: number;
     wallets: ObjectID[];

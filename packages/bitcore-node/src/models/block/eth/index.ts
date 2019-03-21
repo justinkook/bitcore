@@ -21,7 +21,6 @@ export interface IEthBlock extends IBlock {
   bloom: Buffer;
   difficulty: Buffer;
   gasLimit: Buffer;
-  gasUsed: Buffer;
   extraData: Buffer;
   mixHash: Buffer;
   raw: Array<Buffer>;
@@ -127,7 +126,7 @@ export class EthBlockModel extends BlockModel {
       timeNormalized: new Date(blockTimeNormalized),
       nonce: parseInt(new Buffer(header.nonce).toString()),
       transactionCount: block.transactions.length,
-      reward: block.transactions.filter(e => e.outputAmount!)[0].outputAmount || 0,
+      reward: 0,
       processed: false,
       coinbase: header.coinbase,
       transactionsTrie: header.transactionsTrie,
@@ -135,7 +134,6 @@ export class EthBlockModel extends BlockModel {
       bloom: header.bloom,
       difficulty: header.difficulty,
       gasLimit: header.gasLimit,
-      gasUsed: header.gasUsed,
       extraData: header.extraData,
       mixHash: header.mixHash,
       raw: header.raw

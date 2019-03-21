@@ -12,7 +12,7 @@ export class EthereumAdapter implements AdapterType<Ethereum.Block, Ethereum.Tra
       chain,
       network,
       header,
-      height: new BN(header.number).toNumber(),
+      height: new BN(header.number).toNumber() || 0,
       hash: block.header.hash().toString('hex'),
       version: 1,
       merkleRoot: block.header.transactionsTrie.toString('hex'),
@@ -48,7 +48,6 @@ export class EthereumAdapter implements AdapterType<Ethereum.Block, Ethereum.Tra
       network,
       wallets: [] as ObjectID[],
       txid: tx.txid,
-      size: tx.data!.length,
       fee: tx.fee,
       bucket: {
         gasLimit: tx.gasLimit!.toString('hex'),
@@ -74,7 +73,7 @@ export class EthereumAdapter implements AdapterType<Ethereum.Block, Ethereum.Tra
     const outputs = [
       {
         value: tx.value || 0,
-        address: '0x' + tx.to!.toString('hex'),
+        address: '0x' + tx.to!.toString('hex') || '',
         bucket: { tokenValue: tx.tokenValue }
       }
     ];

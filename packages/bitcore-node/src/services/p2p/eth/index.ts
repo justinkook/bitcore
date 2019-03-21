@@ -163,7 +163,7 @@ export class EthP2pService {
     return this.adapter.convertTx({ chain: this.chain, network: this.network, tx, block });
   }
 
-  async processBlock(block: Ethereum.Block): Promise<any> {
+  async processBlock(block: Ethereum.Block) {
     let convertedBlock = await this.adapter.convertBlock({ chain: this.chain, network: this.network, block });
     let convertedTransactions = block.transactions.map(t => this.convertTransaction(t, convertedBlock));
 
@@ -187,7 +187,7 @@ export class EthP2pService {
       chain: this.chain,
       network: this.network,
       initialSyncComplete: this.initialSyncComplete,
-      block
+      block: convertedBlock
     });
 
     await TransactionStorage.batchEthImport({

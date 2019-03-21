@@ -24,7 +24,7 @@ export interface ParityTraceResponse {
   subtraces: number;
   traceAddress: [];
   transactionHash: string;
-  transactionPosition?: number;
+  transactionPosition: number;
   type: 'reward' | 'call' | 'delegatecall' | 'create';
 }
 
@@ -92,6 +92,8 @@ export class ParityRPC {
         chainId = 1;
         break;
     }
+            // gasUsed: parseInt(tx.result.gasUsed!) || parseInt(tx.action.gas!),
+            // new Buffer(tx.result.gasUsed!) ||
     if (decodedData && decodedData.params) {
       return {
         chain,
@@ -101,11 +103,10 @@ export class ParityRPC {
         blockHeight: tx.blockNumber,
         blockHash: tx.blockHash,
         data: tx.action.input,
-        fee: parseInt(tx.result.gasUsed!) | parseInt(new Buffer(tx.action.gas!).toString()),
-        gasLimit: new Buffer(600000),
-        gasUsed: tx.result.gasUsed || tx.action.gas,
-        gasPrice: new Buffer(tx.result.gasUsed!) || new Buffer(tx.action.gas!),
-        nonce: new Buffer(tx.transactionPosition!) || undefined,
+        fee: tx.action.gas! ? parseInt(tx.action.gas!) : 0,
+        gasLimit: Buffer.from('600000'),
+        gasPrice: tx.action.gas! ? Buffer.from(`${tx.action.gas}`) : Buffer.from('0'),
+        nonce: Buffer.from(`${tx.transactionPosition!}`),
         outputIndex: tx.result ? tx.result.output : undefined,
         outputAmount: tx.action.rewardType === 'block' ? parseInt(tx.action.value) : 0,
         value: parseInt(tx.action.value) || 0,
@@ -125,11 +126,10 @@ export class ParityRPC {
         blockHeight: tx.blockNumber,
         blockHash: tx.blockHash,
         data: tx.action.input,
-        fee: parseInt(tx.result.gasUsed!) | parseInt(new Buffer(tx.action.gas!).toString()),
-        gasLimit: new Buffer(600000),
-        gasUsed: tx.result.gasUsed || tx.action.gas,
-        gasPrice: new Buffer(tx.result.gasUsed!) || new Buffer(tx.action.gas!),
-        nonce: new Buffer(tx.transactionPosition!) || undefined,
+        fee: tx.action.gas! ? parseInt(tx.action.gas!) : 0,
+        gasLimit: Buffer.from('600000'),
+        gasPrice: tx.action.gas! ? Buffer.from(`${tx.action.gas}`) : Buffer.from('0'),
+        nonce: Buffer.from(`${tx.transactionPosition!}`),
         outputIndex: tx.result ? tx.result.output : undefined,
         outputAmount: tx.action.rewardType === 'block' ? parseInt(tx.action.value) : 0,
         value: parseInt(tx.action.value) || 0,
