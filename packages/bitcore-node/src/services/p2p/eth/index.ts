@@ -6,7 +6,12 @@ import { StateStorage } from '../../../models/state';
 import { Ethereum } from '../../../types/namespaces/Ethereum';
 import { EthTransactionStorage, EthTransactionModel } from '../../../models/transaction/eth/ethTransaction';
 import { BitcoreP2PEth } from './p2p-lib';
+import { ParityRPC } from '../../../providers/chain-state/eth/parityRpc';
+import { ETHStateProvider } from '../../../providers/chain-state/eth/eth';
+import Web3 from 'web3';
 const LRU = require('lru-cache');
+
+if (Symbol['asyncIterator'] === undefined) (Symbol as any)['asyncIterator'] = Symbol.for('asyncIterator');
 
 export class EthP2pWorker {
   private chain: string;
@@ -20,6 +25,8 @@ export class EthP2pWorker {
   private eth: BitcoreP2PEth;
   private blockModel: EthBlockModel;
   private txModel: EthTransactionModel;
+  private web3: Web3;
+  private rpc: ParityRPC;
 
   constructor({ chain, network, chainConfig, blockModel = EthBlockStorage, txModel = EthTransactionStorage }) {
     this.eth = new BitcoreP2PEth(network);
@@ -32,6 +39,8 @@ export class EthP2pWorker {
     this.invCache = new LRU({ max: 10000 });
     this.blockModel = blockModel;
     this.txModel = txModel;
+    this.web3 = new ETHStateProvider().getWeb3(network);
+    this.rpc = new ParityRPC(this.web3);
   }
 
   setupListeners() {
@@ -130,20 +139,37 @@ export class EthP2pWorker {
     return this.eth.getBlock(header);
   }
 
-  async processBlock(block): Promise<any> {
+  async processBlock(block: Ethereum.Block): Promise<any> {
     if (block.transactions.length > 1) {
       console.log('Block has ', block.transactions.length, 'transactions');
     }
+    // const height = new BN(header.number).toNumber();
+
+    // let transactions = await this.rpc.getTransactionsFromBlock(
+    //   block.header.number,
+    //   this.chain,
+    //   this.network
+    // );
+    // for await (const tx of transactions) {
+    //   const foundIndex = block.transactions.findIndex(t => t.txid === tx.txid);
+    //   if (foundIndex > -1) {
+    //     block.transactions[foundIndex] = tx;
+    //   } else {
+    //     block.transactions = [...block.transactions, tx];
+    //   }
+    // }
+    this.rpc;
     await this.blockModel.addBlock({
       chain: this.chain,
       network: this.network,
       forkHeight: this.chainConfig.forkHeight,
       parentChain: this.chainConfig.parentChain,
       initialSyncComplete: this.initialSyncComplete,
-      block
+      block,
+      transactions: block.transactions
     });
     if (!this.syncing) {
-      logger.info(`Added block ${block.hash}`, {
+      logger.info(`Added block ${block.header.hash}`, {
         chain: this.chain,
         network: this.network
       });

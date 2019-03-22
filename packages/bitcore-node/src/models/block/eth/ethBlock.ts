@@ -25,6 +25,7 @@ export class EthBlockModel extends BlockModel<IEthBlock> {
     initialSyncComplete: boolean;
     chain: string;
     network: string;
+    transactions: Array<Ethereum.Transaction>;
   }) {
     const { block, chain, network } = params;
     const header = block.header;
@@ -44,8 +45,9 @@ export class EthBlockModel extends BlockModel<IEthBlock> {
     initialSyncComplete: boolean;
     chain: string;
     network: string;
+    transactions: Array<Ethereum.Transaction>;
   }) {
-    const { chain, network, block, parentChain, forkHeight, initialSyncComplete } = params;
+    const { chain, network, transactions, parentChain, forkHeight, initialSyncComplete } = params;
     const blockOp = await this.getBlockOp(params);
     const convertedBlock = blockOp.updateOne.update.$set;
     const { height, timeNormalized, time } = convertedBlock;
@@ -62,7 +64,7 @@ export class EthBlockModel extends BlockModel<IEthBlock> {
     }
 
     await EthTransactionStorage.batchImport({
-      txs: block.transactions,
+      txs: transactions,
       blockHash: convertedBlock.hash,
       blockTime: new Date(time),
       blockTimeNormalized: new Date(timeNormalized),
