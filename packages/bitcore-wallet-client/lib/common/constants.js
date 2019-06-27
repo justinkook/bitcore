@@ -6,6 +6,8 @@ Constants.SCRIPT_TYPES = {
   P2SH: 'P2SH',
   P2PKH: 'P2PKH',
 };
+
+// not used, since Credentials 2.0
 Constants.DERIVATION_STRATEGIES = {
   BIP44: 'BIP44',
   BIP45: 'BIP45',
@@ -14,7 +16,7 @@ Constants.DERIVATION_STRATEGIES = {
 
 Constants.PATHS = {
   REQUEST_KEY: "m/1'/0",
-  TXPROPOSAL_KEY: "m/1'/1",
+//  TXPROPOSAL_KEY: "m/1'/1",
   REQUEST_KEY_AUTH: "m/2", // relative to BASE
 };
 
@@ -43,17 +45,6 @@ Constants.UNITS = {
       minDecimals: 0,
     }
   },
-  eth: {
-    toSatoshis: 1000000000000000000,
-    full: {
-      maxDecimals: 18,
-      minDecimals: 18
-    },
-    short: {
-      maxDecimals: 6,
-      minDecimals: 2
-    }	    
-  }
 };
 
 module.exports = Constants;
