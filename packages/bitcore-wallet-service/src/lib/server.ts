@@ -2651,6 +2651,7 @@ export class WalletService {
    * @returns {TxProposal} Transaction proposal. outputs address format will use the same format as inpunt.
    */
   createTx(opts, cb) {
+    // Note this is where txp are made for copay
     opts = opts || {};
 
     const getChangeAddress = (wallet, cb) => {
