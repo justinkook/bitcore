@@ -29,11 +29,6 @@ function v8network(bwsNetwork) {
   }
   return bwsNetwork;
 }
-interface BalanceResponse {
-  unconfirmed: number;
-  confirmed: number;
-  balance: number;
-}
 
 export class V8 {
   coin: string;
@@ -79,46 +74,6 @@ export class V8 {
     this.Client = opts.client || Client || require('./v8/client');
   }
 
-  // Translate Request Address query
-  translateQueryAddresses(addresses) {
-    if (!this.addressFormat) return addresses;
-
-    return BCHAddressTranslator.translate(
-      addresses,
-      this.addressFormat,
-      'copay'
-    );
-  }
-
-  // Translate Result Address
-  translateResultAddresses(addresses) {
-    if (!this.addressFormat) return addresses;
-
-    return BCHAddressTranslator.translate(
-      addresses,
-      'copay',
-      this.addressFormat
-    );
-  }
-
-  translateTx(tx) {
-    if (!this.addressFormat) return tx;
-
-    _.each(tx.vin, x => {
-      if (x.addr) {
-        x.addr = this.translateResultAddresses(x.addr);
-      }
-    });
-
-    _.each(tx.vout, x => {
-      if (x.scriptPubKey && x.scriptPubKey.addresses) {
-        x.scriptPubKey.addresses = this.translateResultAddresses(
-          x.scriptPubKey.addresses
-        );
-      }
-    });
-  }
-
   _getClient() {
     return new this.Client({
       baseUrl: this.baseUrl
@@ -129,7 +84,7 @@ export class V8 {
     $.checkState(wallet.beAuthPrivateKey2);
     return new this.Client({
       baseUrl: this.baseUrl,
-      authKey: Bitcore_.btc.PrivateKey(wallet.beAuthPrivateKey2)
+      authKey: Bitcore_[this.coin].PrivateKey(wallet.beAuthPrivateKey2)
     });
   }
 
@@ -181,17 +136,14 @@ export class V8 {
       .catch(cb);
   }
 
-  async getBalance(wallet, cb?): Promise<BalanceResponse> {
+  async getBalance(wallet, cb) {
     const client = this._getAuthClient(wallet);
-    return client
+    client
       .getBalance({ pubKey: wallet.beAuthPublicKey2, payload: {} })
       .then(ret => {
-        if (cb) {
-          return cb(null, ret);
-        }
-        return ret as BalanceResponse;
+        return cb(null, ret);
       })
-      .catch(err => cb && cb(err));
+      .catch(cb);
   }
 
   getConnectionInfo() {
@@ -213,7 +165,7 @@ export class V8 {
           txid: x.mintTxid,
           vout: x.mintIndex,
           locked: false,
-          confirmations: x.mintHeight > 0 ? bcheight - x.mintHeight + 1 : 0
+          confirmations: x.mintHeight > 0 && bcheight >= x.mintHeight ? bcheight - x.mintHeight + 1 : 0
         };
 
         // v8 field name differences
@@ -434,7 +386,7 @@ export class V8 {
             return icb(err);
           });
       },
-      err => {
+      (err) => {
         if (err) {
           return cb(err);
         }
@@ -496,7 +448,7 @@ export class V8 {
       log.error('Error connecting to ' + this.getConnectionInfo());
     });
     socket.on('tx', callbacks.onTx);
-    socket.on('block', data => {
+    socket.on('block', (data) => {
       return callbacks.onBlock(data.hash);
     });
     socket.on('coin', data => {
@@ -504,12 +456,9 @@ export class V8 {
       if (!data.address) return;
       let out;
       try {
-        const addr =
-          this.coin == 'bch'
-            ? BCHAddressTranslator.translate(data.address, 'copay', 'cashaddr')
-            : data.address;
+        // TODO
         out = {
-          address: addr,
+          address: data.address,
           amount: data.value / 1e8
         };
       } catch (e) {
