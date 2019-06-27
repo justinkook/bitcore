@@ -113,11 +113,6 @@ export class Utils {
         toSatoshis: 100000000,
         maxDecimals: 6,
         minDecimals: 2
-      },
-      eth: {
-        toSatoshis: 1e18,
-        maxDecimals: 18,
-        minDecimals: 2
       }
     };
 
