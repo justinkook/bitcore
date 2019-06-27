@@ -1685,6 +1685,25 @@ export class WalletService {
   }
 
   /**
+   * Converts Bitcore Balance Response.
+   * @param {Object} { unconfirmed, confirmed, balance }
+   * @returns {Object} balance - Total amount & locked amount.
+   */
+  _convertBitcoreBalance(bitcoreBalance) {
+    const { unconfirmed, confirmed, balance } = bitcoreBalance;
+    const convertedBalance = {
+      totalAmount: balance,
+      totalConfirmedAmount: confirmed,
+      lockedAmount: unconfirmed,
+      lockedConfirmedAmount: unconfirmed,
+      availableAmount: balance - unconfirmed,
+      availableConfirmedAmount: confirmed - unconfirmed
+    };
+
+    return convertedBalance;
+  }
+
+  /**
    * Get wallet balance.
    * @param {Object} opts
    * @returns {Object} balance - Total amount & locked amount.
@@ -1719,6 +1738,16 @@ export class WalletService {
 
       this.syncWallet(wallet, err => {
         if (err) return cb(err);
+
+        if (wallet.coin !== 'btc' && wallet.coin !== 'bch') {
+          bc.getBalance(wallet, (err, balance) => {
+            if (err) {
+              return cb(err);
+            }
+            const convertedBalance = this._convertBitcoreBalance(balance);
+            return cb(null, convertedBalance);
+          });
+        }
 
         this._getUtxosForCurrentWallet(
           {
@@ -2651,7 +2680,6 @@ export class WalletService {
    * @returns {TxProposal} Transaction proposal. outputs address format will use the same format as inpunt.
    */
   createTx(opts, cb) {
-    // Note this is where txp are made for copay
     opts = opts || {};
 
     const getChangeAddress = (wallet, cb) => {
