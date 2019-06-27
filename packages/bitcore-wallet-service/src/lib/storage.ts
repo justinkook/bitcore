@@ -11,6 +11,7 @@ log.debug = log.verbose;
 log.disableColor();
 
 const collections = {
+  // Duplciated in helpers.. TODO
   WALLETS: 'wallets',
   TXS: 'txs',
   ADDRESSES: 'addresses',
@@ -19,7 +20,7 @@ const collections = {
   PREFERENCES: 'preferences',
   EMAIL_QUEUE: 'email_queue',
   CACHE: 'cache',
-  FIAT_RATES: 'fiat_rates',
+  FIAT_RATES2: 'fiat_rates2',
   TX_NOTES: 'tx_notes',
   SESSIONS: 'sessions',
   PUSH_NOTIFICATION_SUBS: 'push_notification_subs',
@@ -37,94 +38,94 @@ export class Storage {
     this.db = opts.db;
   }
 
-  _createIndexes() {
-    this.db.collection(collections.WALLETS).createIndex({
+  static createIndexes(db) {
+    log.info('Creating DB indexes');
+    db.collection(collections.WALLETS).createIndex({
       id: 1
     });
-    this.db.collection(collections.COPAYERS_LOOKUP).createIndex({
+    db.collection(collections.COPAYERS_LOOKUP).createIndex({
       copayerId: 1
     });
-    this.db.collection(collections.COPAYERS_LOOKUP).createIndex({
+    db.collection(collections.COPAYERS_LOOKUP).createIndex({
       walletId: 1
     });
-    this.db.collection(collections.TXS).createIndex({
+    db.collection(collections.TXS).createIndex({
       walletId: 1,
       id: 1
     });
-    this.db.collection(collections.TXS).createIndex({
+    db.collection(collections.TXS).createIndex({
       walletId: 1,
       isPending: 1,
       txid: 1
     });
-    this.db.collection(collections.TXS).createIndex({
+    db.collection(collections.TXS).createIndex({
       walletId: 1,
       createdOn: -1
     });
-    this.db.collection(collections.TXS).createIndex({
+    db.collection(collections.TXS).createIndex({
       txid: 1
     });
-    this.db.collection(collections.NOTIFICATIONS).createIndex({
+    db.collection(collections.NOTIFICATIONS).createIndex({
       walletId: 1,
       id: 1
     });
-    this.db.collection(collections.ADDRESSES).createIndex({
+    db.collection(collections.ADDRESSES).createIndex({
       walletId: 1,
       createdOn: 1
     });
-    this.db.collection(collections.ADDRESSES).createIndex(
+
+    db.collection(collections.ADDRESSES).createIndex(
       {
         address: 1
       },
       { unique: true }
     );
-    this.db.collection(collections.ADDRESSES).createIndex({
+    db.collection(collections.ADDRESSES).createIndex({
       address: 1,
       beRegistered: 1
     });
-    this.db.collection(collections.ADDRESSES).createIndex({
+    db.collection(collections.ADDRESSES).createIndex({
       walletId: 1,
       address: 1
     });
-    this.db.collection(collections.EMAIL_QUEUE).createIndex({
+    db.collection(collections.EMAIL_QUEUE).createIndex({
       id: 1
     });
-    this.db.collection(collections.EMAIL_QUEUE).createIndex({
+    db.collection(collections.EMAIL_QUEUE).createIndex({
       notificationId: 1
     });
-    this.db.collection(collections.CACHE).createIndex({
+    db.collection(collections.CACHE).createIndex({
       walletId: 1,
       type: 1,
       key: 1
     });
-    this.db.collection(collections.TX_NOTES).createIndex({
+    db.collection(collections.TX_NOTES).createIndex({
       walletId: 1,
       txid: 1
     });
-    this.db.collection(collections.PREFERENCES).createIndex({
+    db.collection(collections.PREFERENCES).createIndex({
       walletId: 1
     });
-    this.db.collection(collections.FIAT_RATES).createIndex({
-      provider: 1,
+    db.collection(collections.FIAT_RATES2).createIndex({
+      coin: 1,
       code: 1,
       ts: 1
     });
-    this.db.collection(collections.PUSH_NOTIFICATION_SUBS).createIndex({
+    db.collection(collections.PUSH_NOTIFICATION_SUBS).createIndex({
       copayerId: 1
     });
-    this.db.collection(collections.TX_CONFIRMATION_SUBS).createIndex({
+    db.collection(collections.TX_CONFIRMATION_SUBS).createIndex({
       copayerId: 1,
       txid: 1
     });
-    this.db.collection(collections.SESSIONS).createIndex({
+    db.collection(collections.SESSIONS).createIndex({
       copayerId: 1
     });
   }
 
   connect(opts, cb) {
     opts = opts || {};
-
     if (this.db) return cb();
-
     const config = opts.mongoDb || {};
     mongodb.MongoClient.connect(
       config.uri,
@@ -134,8 +135,9 @@ export class Storage {
           return cb(err);
         }
         this.db = db;
-        this._createIndexes();
-        console.log('Connection established to mongoDB');
+
+        log.info('Connection established to mongoDB');
+        Storage.createIndexes(db);
         return cb();
       }
     );
@@ -677,6 +679,7 @@ export class Storage {
   storeAddressAndWallet(wallet, addresses, cb) {
     const clonedAddresses = [].concat(addresses);
     if (_.isEmpty(addresses)) return cb();
+    let duplicate;
 
     this.db.collection(collections.ADDRESSES).insert(
       clonedAddresses,
@@ -684,8 +687,20 @@ export class Storage {
         w: 1
       },
       (err) => {
-        if (err) return cb(err);
-        this.storeWallet(wallet, cb);
+        // duplicate address?
+        if ( err ) {
+          if (!err.toString().match(/E11000/)) {
+            return cb(err);
+          } else {
+            // just return it
+            duplicate = true;
+            log.warn('Found duplicate address: ' +
+              _.join( _.map(clonedAddresses, 'address') , ',') );
+          }
+        }
+        this.storeWallet(wallet, (err) => {
+          return cb(err, duplicate);
+        });
       }
     );
   }
@@ -1105,18 +1120,19 @@ export class Storage {
     );
   }
 
-  storeFiatRate(providerName, rates, cb) {
+  storeFiatRate(coin, rates, cb) {
     const now = Date.now();
     async.each(
       rates,
       (rate: { code: string; value: string }, next) => {
-        this.db.collection(collections.FIAT_RATES).insert(
-          {
-            provider: providerName,
+        let i = {
             ts: now,
+            coin,
             code: rate.code,
             value: rate.value
-          },
+          };
+        this.db.collection(collections.FIAT_RATES2).insert(i
+          ,
           {
             w: 1
           },
@@ -1127,11 +1143,11 @@ export class Storage {
     );
   }
 
-  fetchFiatRate(providerName, code, ts, cb) {
+  fetchFiatRate(coin, code, ts, cb) {
     this.db
-      .collection(collections.FIAT_RATES)
+      .collection(collections.FIAT_RATES2)
       .find({
-        provider: providerName,
+        coin,
         code,
         ts: {
           $lte: ts
@@ -1423,7 +1439,7 @@ export class Storage {
   }
 
   walletCheck = async params => {
-    const { walletId, bch } = params;
+    const { walletId } = params;
 
     return new Promise(resolve => {
       const addressStream = this.db
@@ -1433,19 +1449,8 @@ export class Storage {
       let lastAddress;
       addressStream.on('data', walletAddress => {
         if (walletAddress.address) {
-          let addr = walletAddress.address;
-
-          // TODO remove on native cashaddr
-          if (bch) {
-            addr = BCHAddressTranslator.translate(addr, 'cashaddr', 'copay');
-            $.checkState(
-              addr,
-              'ERROR: wrong addr format on DB for wallet:' + walletId
-            );
-          }
-
-          lastAddress = addr;
-          const addressSum = Buffer.from(addr).reduce(
+          lastAddress =  walletAddress.address;
+          const addressSum = Buffer.from(lastAddress).reduce(
             (tot, cur) => (tot + cur) % Number.MAX_SAFE_INTEGER
           );
           sum = (sum + addressSum) % Number.MAX_SAFE_INTEGER;

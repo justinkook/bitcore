@@ -1,8 +1,9 @@
-var $ = require('preconditions').singleton();
-const CWC = require('crypto-wallet-core').default;
-import * as _ from 'lodash';
-var Common = require('../common');
-var Constants = Common.Constants,
+import CWC from 'crypto-wallet-core';
+import _ from 'lodash';
+
+const $ = require('preconditions').singleton();
+const Common = require('../common');
+const Constants = Common.Constants,
   Defaults = Common.Defaults,
   Utils = Common.Utils;
 
@@ -55,7 +56,10 @@ export class Address {
     x.path = opts.path;
     x.publicKeys = opts.publicKeys;
     x.coin = opts.coin;
-    x.network = opts.network || 'mainnet';
+    x.network = opts.network || 'mainnet',
+    // x.network = Address.Bitcore[opts.coin]
+    //   .Address(x.address)
+    //   .toObject().network;
     x.type = opts.type || Constants.SCRIPT_TYPES.P2SH;
     x.hasActivity = undefined;
     x.beRegistered = null;
@@ -92,14 +96,16 @@ export class Address {
     $.checkArgument(
       Utils.checkValueInCollection(scriptType, Constants.SCRIPT_TYPES)
     );
-    var bitcoreAddress;
-    var publicKeys = _.map(publicKeyRing, function(item) {
-      var xpub = new Address.Bitcore.btc.HDPublicKey(item.xPubKey);
+
+    const publicKeys = _.map(publicKeyRing, (item) => {
+      const xpub = new Address.Bitcore['btc'].HDPublicKey(item.xPubKey);
       return xpub.deriveChild(path).publicKey;
     });
+
+    let bitcoreAddress;
     switch (scriptType) {
       case Constants.SCRIPT_TYPES.P2SH:
-        bitcoreAddress = Address.Bitcore.btc.Address.createMultisig(
+        bitcoreAddress = Address.Bitcore['btc'].Address.createMultisig(
           publicKeys,
           m,
           network
@@ -118,13 +124,15 @@ export class Address {
           addressIndex,
           isChange
         );
+        // bitcoreAddress = Address.Bitcore[coin].Address.fromPublicKey(
+        //   publicKeys[0],
+        //   network
+        // );
         break;
     }
 
-    let addrStr = bitcoreAddress;
-    if (coin === 'btc') {
-     addrStr = bitcoreAddress.toString(true);
-    } else if (noNativeCashAddr && coin == 'bch') {
+    let addrStr = bitcoreAddress.toString(true);
+    if (noNativeCashAddr && coin == 'bch') {
       addrStr = bitcoreAddress.toLegacyAddress();
     }
 

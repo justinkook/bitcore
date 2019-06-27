@@ -21,41 +21,39 @@ module.exports = {
 
   storageOpts: {
     mongoDb: {
-      uri: 'mongodb://localhost:27017/bws'
-    }
+      uri: 'mongodb://localhost:27017/bws',
+    },
   },
   messageBrokerOpts: {
     //  To use message broker server, uncomment this:
     messageBrokerServer: {
-      url: 'http://localhost:3380'
-    }
+      url: 'http://localhost:3380',
+    },
   },
   blockchainExplorerOpts: {
     btc: {
       livenet: {
-        url: 'https://api.bitcore.io'
+        url: 'https://api.bitcore.io',
       },
       testnet: {
-        url: 'http://localhost:3000',
-        regtestEnabled: true
-      }
+        url: 'https://api.bitcore.io',
+        regtestEnabled: false
+      },
     },
     bch: {
       livenet: {
-        url: 'https://api.bitcore.io'
+        url: 'https://api.bitcore.io',
       },
       testnet: {
         // url: 'http://localhost:3000',
-        url: 'https://api.bitcore.io'
-      }
+        url: 'https://api.bitcore.io',
+      },
+
     },
     eth: {
       livenet: {
         url: 'http://localhost:3000'
       },
-      mainnet: {
-        url: 'http://localhost:3000'
-      }
     }
   },
   pushNotificationsOpts: {
@@ -64,12 +62,12 @@ module.exports = {
     defaultUnit: 'btc',
     subjectPrefix: '',
     pushServerUrl: 'https://fcm.googleapis.com/fcm',
-    authorizationKey: 'You_have_to_put_something_here'
+    authorizationKey: 'You_have_to_put_something_here',
   },
   fiatRateServiceOpts: {
     defaultProvider: 'BitPay',
-    fetchInterval: 60 // in minutes
-  }
+    fetchInterval: 60, // in minutes
+  },
   // To use email notifications uncomment this:
   // emailOpts: {
   //  host: 'localhost',

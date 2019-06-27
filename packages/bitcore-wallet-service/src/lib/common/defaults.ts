@@ -156,5 +156,5 @@ module.exports = {
 
   BE_KEY_SALT: 'bws-auth-keysalt',
 
-  BROADCAST_RETRY_TIME: 350, //ms
+  BROADCAST_RETRY_TIME: 350, // ms
 };
