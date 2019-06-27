@@ -2,7 +2,6 @@ import { Component, Injectable } from '@angular/core';
 import { IonicPage, NavParams } from 'ionic-angular';
 import { ApiProvider, ChainNetwork } from '../../providers/api/api';
 import { CurrencyProvider } from '../../providers/currency/currency';
-import { Logger } from '../../providers/logger/logger';
 import { PriceProvider } from '../../providers/price/price';
 import { RedirProvider } from '../../providers/redir/redir';
 import { TxsProvider } from '../../providers/transactions/transactions';
@@ -34,34 +33,31 @@ export class TransactionPage {
     public redirProvider: RedirProvider,
     private apiProvider: ApiProvider,
     private txProvider: TxsProvider,
-    private logger: Logger,
     private priceProvider: PriceProvider
   ) {
     this.txId = navParams.get('txId');
     this.vout = navParams.get('vout');
     this.fromVout = navParams.get('fromVout') || undefined;
 
-    const chain: string =
-      navParams.get('chain') || this.apiProvider.getConfig().chain;
-    const network: string =
-      navParams.get('network') || this.apiProvider.getConfig().network;
+    const chain: string = navParams.get('chain');
+    const network: string = navParams.get('network');
 
     this.chainNetwork = {
       chain,
       network
     };
     this.apiProvider.changeNetwork(this.chainNetwork);
-    this.currencyProvider.setCurrency();
+    this.currencyProvider.setCurrency(this.chainNetwork);
     this.priceProvider.setCurrency();
   }
 
-  public ionViewDidLoad(): void {
-    this.txProvider.getTx(this.txId).subscribe(
+  public ionViewDidEnter(): void {
+    this.txProvider.getTx(this.txId, this.chainNetwork).subscribe(
       data => {
         this.tx = this.txProvider.toAppTx(data);
         this.loading = false;
         this.txProvider
-          .getConfirmations(this.tx.blockheight)
+          .getConfirmations(this.tx.blockheight, this.chainNetwork)
           .subscribe(confirmations => {
             if (confirmations === -3) {
               this.errorMessage =
@@ -72,8 +68,7 @@ export class TransactionPage {
         // Be aware that the tx component is loading data into the tx object
       },
       err => {
-        this.logger.error(err.message);
-        this.errorMessage = err.message;
+        this.errorMessage = err;
         this.loading = false;
       }
     );
