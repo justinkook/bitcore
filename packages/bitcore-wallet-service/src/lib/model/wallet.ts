@@ -185,7 +185,7 @@ export class Wallet {
   updateBEKeys() {
     $.checkState(this.isComplete());
 
-    const bitcore = Bitcore[this.coin];
+    const bitcore = Bitcore['btc'];
     const salt = config.BE_KEY_SALT || Defaults.BE_KEY_SALT;
 
     var seed =
