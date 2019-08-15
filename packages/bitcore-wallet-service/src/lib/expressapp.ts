@@ -343,7 +343,7 @@ export class ExpressApp {
 
     router.get('/v3/wallets/', (req, res) => {
       getServerWithAuth(req, res, (server) => {
-        const opts = { includeExtendedInfo: false, twoStep: false, includeServerMessages: false };
+        const opts = { includeExtendedInfo: false, twoStep: false, includeServerMessages: false, tokenAddress: req.query.tokenAddress };
         if (req.query.includeExtendedInfo == '1')
           opts.includeExtendedInfo = true;
         if (req.query.twoStep == '1') opts.twoStep = true;

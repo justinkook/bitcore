@@ -1137,6 +1137,9 @@ API.prototype.getStatus = function(opts, cb) {
   qs.push('includeExtendedInfo=' + (opts.includeExtendedInfo ? '1' : '0'));
   qs.push('twoStep=' + (opts.twoStep ? '1' : '0'));
   qs.push('serverMessageArray=1');
+  if (opts.tokenAddress) {
+    qs.push('tokenAddress=' + opts.tokenAddress);
+  }
 
   self.request.get('/v3/wallets/?' + qs.join('&'), function(err, result) {
     if (err) return cb(err);

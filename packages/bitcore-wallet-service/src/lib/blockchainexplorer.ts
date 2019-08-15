@@ -18,8 +18,8 @@ const PROVIDERS = {
       testnet: 'https://api.bitpay.com'
     },
     eth: {
-      livenet: 'https://api.bitpay.com',
-      testnet: 'https://api.bitpay.com'
+      livenet: 'http://localhost:3000',
+      testnet: 'http://localhost:3000'
     }
   }
 };

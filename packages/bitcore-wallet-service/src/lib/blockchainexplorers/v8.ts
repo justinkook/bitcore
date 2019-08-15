@@ -139,8 +139,9 @@ export class V8 {
 
   async getBalance(wallet, cb) {
     const client = this._getAuthClient(wallet);
+    const { tokenAddress } = wallet;
     client
-      .getBalance({ pubKey: wallet.beAuthPublicKey2, payload: {} })
+      .getBalance({ pubKey: wallet.beAuthPublicKey2, payload: {}, tokenAddress })
       .then(ret => {
         return cb(null, ret);
       })

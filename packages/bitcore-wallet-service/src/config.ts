@@ -50,10 +50,10 @@ module.exports = {
     },
     eth: {
       livenet: {
-        url: 'https://api.bitcore.io',
+        url: 'http://localhost:3000',
       },
       testnet: {
-        url: 'https://api.bitcore.io',
+        url: 'http://localhost:3000',
       },
     },
   },

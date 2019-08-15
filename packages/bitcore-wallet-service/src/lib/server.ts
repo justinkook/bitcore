@@ -663,6 +663,7 @@ export class WalletService {
    * @param {Object} opts
    * @param {Object} opts.includeExtendedInfo - Include PKR info & address managers for wallet & copayers
    * @param {Object} opts.includeServerMessages - Include server messages array
+   * @param {Object} opts.tokenAddress - ERC20 Contract Address
    * @returns {Object} status
    */
   getStatus(opts, cb) {
@@ -1756,6 +1757,7 @@ export class WalletService {
         if (err) return cb(err);
 
         if (!Constants.UTXO_COINS[wallet.coin.toUpperCase()]) {
+          wallet.tokenAddress = opts.tokenAddress;
           bc.getBalance(wallet, (err, balance) => {
             if (err) {
               return cb(err);
