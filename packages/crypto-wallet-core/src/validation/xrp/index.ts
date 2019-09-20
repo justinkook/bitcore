@@ -2,6 +2,8 @@ import { IValidation } from '..';
 import baseX from 'base-x';
 import crypto from 'crypto';
 
+const RIPPLE_ALPHABET = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz';
+
 export class XrpValidation implements IValidation {
   validateAddress(_network: string, address: string): boolean {
     // First ensure it matches regex
@@ -11,7 +13,7 @@ export class XrpValidation implements IValidation {
     }
 
     // Then ensure it is a valid base58check encoding
-    const base58 = baseX('rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz');
+    const base58 = baseX(RIPPLE_ALPHABET);
     const buffer = new Buffer(base58.decode(address));
     let prefix = buffer.slice(0, 1);
     let data = buffer.slice(1, -4);

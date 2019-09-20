@@ -8,8 +8,9 @@ export class XrpDeriver implements IDeriver {
     const xpub = new BitcoreLib.HDPublicKey(xpubkey, network);
     const changeNum = isChange ? 1 : 0;
     const path = `m/${changeNum}/${addressIndex}`;
-    const derived = xpub.derive(path).toObject().publicKey;
-    return derived;
+    const pubKey = xpub.derive(path).toObject().publicKey;
+    const address = rippleKeypairs.deriveAddress(pubKey);
+    return address;
   }
 
   derivePrivateKey(network, xPriv, addressIndex, isChange) {
