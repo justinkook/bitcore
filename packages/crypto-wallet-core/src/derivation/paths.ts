@@ -13,9 +13,9 @@ export const Paths = {
     testnet: "m/44'/60'/"
   },
   XRP: {
-    mainnet: `m/44'/144/`,
-    livenet: `m/44'/144/`,
-    testnet: `m/44'/144`
+    mainnet: "m/44'/144'/",
+    livenet: "m/44'/144'/",
+    testnet: "m/44'/144'/"
   },
   default: {
     testnet: "m/44'/1'/"

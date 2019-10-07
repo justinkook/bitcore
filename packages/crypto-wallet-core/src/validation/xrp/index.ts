@@ -1,6 +1,7 @@
-import { IValidation } from '..';
 import baseX from 'base-x';
+import Bitcore from 'bitcore-lib';
 import crypto from 'crypto';
+import { IValidation } from '..';
 
 const RIPPLE_ALPHABET = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz';
 
@@ -24,13 +25,19 @@ export class XrpValidation implements IValidation {
       if (check !== hash[index]) {
         // Invalid checksum
         return 0;
-      }
-      else return acc || 1;
+      } else return acc || 1;
     });
     if (checksum === 0) {
       return false;
     }
 
     return true;
+  }
+
+  validateUri(addressUri: string): boolean {
+    // Check if the input is a valid uri or address
+    const URI = Bitcore.URI;
+    // Bip21 uri
+    return URI.isValid(addressUri);
   }
 }

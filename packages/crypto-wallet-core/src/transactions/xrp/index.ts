@@ -1,7 +1,9 @@
 import { RippleAPI } from 'ripple-lib';
-import { Key } from '../../derivation';
+// tslint:disable-next-line:no-submodule-imports
 import { Payment } from 'ripple-lib/dist/npm/transaction/payment';
+// tslint:disable-next-line:no-submodule-imports
 import { Instructions } from 'ripple-lib/dist/npm/transaction/types';
+import { Key } from '../../derivation';
 
 export class XRPTxProvider {
   create(params: {
@@ -25,7 +27,7 @@ export class XRPTxProvider {
         }
       },
       destination: {
-        address: address,
+        address,
         tag: tag || undefined,
         amount: {
           value: amount.toString(),
@@ -36,7 +38,7 @@ export class XRPTxProvider {
     };
 
     const instructions: Instructions = {
-      fee: fee,
+      fee,
       sequence: nonce,
       maxLedgerVersion: null,
     };
@@ -53,7 +55,7 @@ export class XRPTxProvider {
     const { tx, key } = params;
     const txJSON = tx;
     let rippleAPI = new RippleAPI();
-    const signedTx = rippleAPI.sign(txJSON,{
+    const signedTx = rippleAPI.sign(txJSON, {
       privateKey: key.privKey,
       publicKey: key.pubKey,
     });

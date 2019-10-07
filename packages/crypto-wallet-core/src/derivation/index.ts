@@ -1,8 +1,8 @@
 import { BchDeriver } from './bch';
 import { BtcDeriver } from './btc';
 import { EthDeriver } from './eth';
-import { XrpDeriver } from './xrp';
 import { Paths } from './paths';
+import { XrpDeriver } from './xrp';
 
 export interface Key {
   address: string;
