@@ -15,11 +15,11 @@ var $ = require('preconditions').singleton();
 var util = require('util');
 var async = require('async');
 var events = require('events');
-var Bitcore = require('bitcore-lib');
+var Bitcore = CWC.BitcoreLib;
 var Bitcore_ = {
-  btc: Bitcore,
-  bch: require('bitcore-lib-cash'),
-  eth: Bitcore
+  btc: CWC.BitcoreLib,
+  bch: CWC.BitcoreLibCash,
+  eth: CWC.BitcoreLib
 };
 var Mnemonic = require('bitcore-mnemonic');
 var url = require('url');
@@ -61,8 +61,8 @@ export class API extends EventEmitter {
   static errors = Errors;
 
   // Expose bitcore
-  static Bitcore = require('bitcore-lib');
-  static BitcoreCash = require('bitcore-lib-cash');
+  static Bitcore = CWC.BitcoreLib;
+  static BitcoreCash = CWC.BitcoreLibCash;
 
   constructor(opts?) {
     super();
@@ -103,7 +103,7 @@ export class API extends EventEmitter {
   }
 
   _fetchLatestNotifications(interval, cb) {
-    cb = cb || function () { };
+    cb = cb || function() {};
 
     var opts: any = {
       lastNotificationId: this.lastNotificationId,
@@ -294,7 +294,7 @@ export class API extends EventEmitter {
       var words;
       try {
         words = c.getMnemonic();
-      } catch (ex) { }
+      } catch (ex) {}
 
       var xpriv;
       if (words && (!c.mnemonicHasPassphrase || opts.passphrase)) {
@@ -604,27 +604,25 @@ export class API extends EventEmitter {
     });
   }
 
-  _addSignaturesToBitcoreTx(txp, t, signatures, xpub) {
+
+  _addSignaturesToBitcoreTxBitcoin(txp, t, signatures, xpub) {
+    $.checkState(txp.coin);
+    const bitcore = Bitcore_[txp.coin];
     if (signatures.length != txp.inputs.length)
       throw new Error('Number of signatures does not match number of inputs');
 
-    $.checkState(txp.coin);
+    let i = 0;
+    const x = new bitcore.HDPublicKey(xpub);
 
-    var bitcore = Bitcore_[txp.coin];
-
-    var i = 0,
-      x = new bitcore.HDPublicKey(xpub);
-
-    _.each(signatures, signatureHex => {
-      var input = txp.inputs[i];
+    _.each(signatures, (signatureHex) => {
       try {
-        var signature = bitcore.crypto.Signature.fromString(signatureHex);
-        var pub = x.deriveChild(txp.inputPaths[i]).publicKey;
-        var s = {
+        const signature = bitcore.crypto.Signature.fromString(signatureHex);
+        const pub = x.deriveChild(txp.inputPaths[i]).publicKey;
+        const s = {
           inputIndex: i,
           signature,
-          // tslint:disable:no-bitwise
           sigtype:
+            // tslint:disable-next-line:no-bitwise
             bitcore.crypto.Signature.SIGHASH_ALL |
             bitcore.crypto.Signature.SIGHASH_FORKID,
           publicKey: pub
@@ -633,7 +631,26 @@ export class API extends EventEmitter {
         i++;
       } catch (e) { }
     });
+
     if (i != txp.inputs.length) throw new Error('Wrong signatures');
+  }
+
+  _addSignaturesToBitcoreTx(txp, t, signatures, xpub) {
+    switch (txp.coin) {
+      case 'eth':
+        const raw = CWC.Transactions.applySignature({
+          chain: 'ETH',
+          tx: t.uncheckedSerialize(),
+          signature: signatures[0],
+        });
+        t.uncheckedSerialize = () => raw ;
+
+        // bitcore users id for txid...
+        t.id = CWC.Transactions.getHash({ tx: raw, chain: txp.coin.toUpperCase() });
+        break;
+      default:
+        return this._addSignaturesToBitcoreTxBitcoin(txp, t, signatures, xpub);
+    }
   }
 
   _applyAllSignatures(txp, t) {
@@ -741,9 +758,9 @@ export class API extends EventEmitter {
 
     this.request.get(
       '/v2/feelevels/?coin=' +
-      (coin || 'btc') +
-      '&network=' +
-      (network || 'livenet'),
+        (coin || 'btc') +
+        '&network=' +
+        (network || 'livenet'),
       (err, result) => {
         if (err) return cb(err);
         return cb(err, result);
@@ -1462,9 +1479,9 @@ export class API extends EventEmitter {
               encryptedPkr: opts.doNotEncryptPkr
                 ? null
                 : Utils.encryptMessage(
-                  JSON.stringify(this.credentials.publicKeyRing),
-                  this.credentials.personalEncryptingKey
-                ),
+                    JSON.stringify(this.credentials.publicKeyRing),
+                    this.credentials.personalEncryptingKey
+                  ),
               unencryptedPkr: opts.doNotEncryptPkr
                 ? JSON.stringify(this.credentials.publicKeyRing)
                 : null,
@@ -1720,7 +1737,7 @@ export class API extends EventEmitter {
 
       if (paypro) {
         var t_unsigned = Utils.buildTx(txp);
-        var t = Utils.buildTx(txp);
+        var t = _.clone(t_unsigned);
         this._applyAllSignatures(txp, t);
 
         PayPro.send(
@@ -2141,7 +2158,7 @@ export class API extends EventEmitter {
     var ret;
     try {
       ret = JSON.parse(decrypted);
-    } catch (e) { }
+    } catch (e) {}
     return ret;
   }
 

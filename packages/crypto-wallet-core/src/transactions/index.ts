@@ -1,8 +1,8 @@
-import { BTCTxProvider } from './btc';
 import { BCHTxProvider } from './bch';
-import { ETHTxProvider } from './eth';
+import { BTCTxProvider } from './btc';
 import { ERC20TxProvider } from './erc20';
 import { XRPTxProvider } from './xrp';
+import { ETHTxProvider } from './eth';
 
 const providers = {
   BTC: new BTCTxProvider(),
@@ -24,6 +24,19 @@ export class TransactionsProxy {
   sign(params): string {
     return this.get(params).sign(params);
   }
+
+  getSignature(params): string {
+    return this.get(params).getSignature(params);
+  }
+
+  applySignature(params) {
+    return this.get(params).applySignature(params);
+  }
+
+  getHash(params) {
+    return this.get(params).getHash(params);
+  }
+
 }
 
 export default new TransactionsProxy();
