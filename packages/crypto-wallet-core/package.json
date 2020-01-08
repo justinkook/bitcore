@@ -27,7 +27,7 @@
     "ethers": "4.0.37",
     "ripple-binary-codec": "0.2.4",
     "ripple-keypairs": "git+https://git@github.com/bitpay/ripple-keypairs.git#27ee0765486555cfe6a1fd60e207e32765a078bb",
-    "ripple-lib": "git+https://git@github.com/justinkook/ripple-lib.git#35a2993439bcb529329d4df1b15ccec65966c3f6",
+    "ripple-lib": "git+https://git@github.com/justinkook/ripple-lib.git#0c5e0542d8a0e86ad17e093faa89780fc75df3e9",
     "web3": "1.2.1"
   },
   "devDependencies": {
