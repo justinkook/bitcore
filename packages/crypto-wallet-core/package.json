@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/chai": "4.1.7",
     "@types/mocha": "5.2.6",
-    "@types/node": "10.12.15",
+    "@types/node": "10.17.13",
     "@types/web3": "1.0.19",
     "chai": "4.2.0",
     "eslint-config-airbnb-base": "12.1.0",
@@ -41,7 +41,7 @@
     "mocha": "6.1.4",
     "ts-node": "8.1.0",
     "tslint": "5.14.0",
-    "typescript": "3.3.4000"
+    "typescript": "3.6.4"
   },
   "gitHead": "012cc0216a9bc6b195035855bd17149bad41acd1"
 }
