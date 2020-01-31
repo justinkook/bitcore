@@ -79,13 +79,23 @@ export class EthChain implements IChain {
       if (err) return cb(err);
       const { totalAmount, availableAmount } = balance;
       let fee = opts.feePerKb * Defaults.MIN_GAS_LIMIT;
-      return cb(null, {
-        utxosBelowFee: 0,
-        amountBelowFee: 0,
-        amount: availableAmount - fee,
-        feePerKb: opts.feePerKb,
-        fee
-      });
+      if (Constants.ERC20.includes(wallet.coin)) {
+        return cb(null, {
+          utxosBelowFee: 0,
+          amountBelowFee: 0,
+          amount: availableAmount,
+          feePerKb: opts.feePerKb,
+          fee
+        });
+      } else {
+        return cb(null, {
+          utxosBelowFee: 0,
+          amountBelowFee: 0,
+          amount: availableAmount - fee,
+          feePerKb: opts.feePerKb,
+          fee
+        });
+      }
     });
   }
 
