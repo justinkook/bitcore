@@ -139,6 +139,61 @@ export class Utils {
         toSatoshis: 1e2,
         maxDecimals: 6,
         minDecimals: 2
+      },
+      dai: {
+        toSatoshis: 1e18,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      bat: {
+        toSatoshis: 1e18,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      bnb: {
+        toSatoshis: 1e18,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      link: {
+        toSatoshis: 1e18,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      cvc: {
+        toSatoshis: 1e8,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      mana: {
+        toSatoshis: 1e18,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      gnt: {
+        toSatoshis: 1e18,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      omg: {
+        toSatoshis: 1e18,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      usdt: {
+        toSatoshis: 1e6,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      trx: {
+        toSatoshis: 1e6,
+        maxDecimals: 6,
+        minDecimals: 2
+      },
+      zrx: {
+        toSatoshis: 1e18,
+        maxDecimals: 6,
+        minDecimals: 2
       }
     };
 
