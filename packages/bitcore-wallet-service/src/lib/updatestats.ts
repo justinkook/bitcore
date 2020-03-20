@@ -41,19 +41,19 @@ export class UpdateStats {
     async.series(
       [
         next => {
-          console.log("Updating new wallets stats...");
+          console.log('Updating new wallets stats...');
           this._updateNewWallets(next);
         },
         next => {
-          console.log("Updating tx proposals stats...");
+          console.log('Updating tx proposals stats...');
           this._updateTxProposals(next);
         },
         next => {
-          console.log("Updating fiat rates stats...");
+          console.log('Updating fiat rates stats...');
           this._updateFiatRates(next);
         }
       ],
-      (err) => {
+      err => {
         this.db.close();
         if (err) return cb(err);
         return cb();
@@ -90,13 +90,13 @@ export class UpdateStats {
         }
         if (res.length !== 0) {
           try {
-            console.log(`Checking if stats_wallets table exist.`);
+            console.log('Checking if stats_wallets table exist.');
             if (!this.db.collection('stats_wallets').find()) {
-              console.log(`stats_wallets table does not exist.`);
-              console.log(`Creating stats_wallets table.`);
+              console.log('stats_wallets table does not exist.');
+              console.log('Creating stats_wallets table.');
               await this.db.createCollection('stats_wallets');
             }
-            console.log(`Cleaning stats_wallets table.`);
+            console.log('Cleaning stats_wallets table.');
             await this.db
               .collection('stats_wallets')
               .remove({})
@@ -110,7 +110,7 @@ export class UpdateStats {
             console.log('Cannot insert into stats_wallets:', err);
           }
         } else {
-          console.log("No data to update in stats_wallets");
+          console.log('No data to update in stats_wallets');
         }
         return cb();
       });
@@ -149,13 +149,13 @@ export class UpdateStats {
         }
         if (res.length !== 0) {
           try {
-            console.log(`Checking if stats_fiat_rates table exist.`);
+            console.log('Checking if stats_fiat_rates table exist.');
             if (!this.db.collection('stats_fiat_rates').find()) {
-              console.log(`stats_fiat_rates table does not exist.`);
-              console.log(`Creating stats_fiat_rates table.`);
+              console.log('stats_fiat_rates table does not exist.');
+              console.log('Creating stats_fiat_rates table.');
               await this.db.createCollection('stats_fiat_rates');
             }
-            console.log(`Cleaning stats_fiat_rates table.`);
+            console.log('Cleaning stats_fiat_rates table.');
             await this.db
               .collection('stats_fiat_rates')
               .remove({})
@@ -169,7 +169,7 @@ export class UpdateStats {
             console.log('Cannot insert into stats_fiat_rates:', err);
           }
         } else {
-          console.log("No data to update in stats_fiat_rates");
+          console.log('No data to update in stats_fiat_rates');
         }
         return cb();
       });
@@ -206,13 +206,13 @@ export class UpdateStats {
         }
         if (res.length !== 0) {
           try {
-            console.log(`Checking if stats_txps table exist.`);
+            console.log('Checking if stats_txps table exist.');
             if (!this.db.collection('stats_txps').find()) {
-              console.log(`stats_txps table does not exist.`);
-              console.log(`Creating stats_txps table.`);
+              console.log('stats_txps table does not exist.');
+              console.log('Creating stats_txps table.');
               await this.db.createCollection('stats_txps');
             }
-            console.log(`Cleaning stats_txps table.`);
+            console.log('Cleaning stats_txps table.');
             await this.db
               .collection('stats_txps')
               .remove({})
@@ -226,7 +226,7 @@ export class UpdateStats {
             console.log('Cannot insert into stats_txps:', err);
           }
         } else {
-          console.log("No data to update in stats_txps");
+          console.log('No data to update in stats_txps');
         }
         return cb();
       });
